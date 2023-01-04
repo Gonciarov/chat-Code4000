@@ -2,7 +2,9 @@ const app = require('express')();
 const server = require('http').createServer(app);
 const cors = require('cors');
 const { Server } = require('socket.io');
-app.use(cors());
+app.use(cors({
+    origin: `http://localhost:3000`
+}));
 const io = new Server(server, {
     cors: {
         origin: "http://localhost:3000",
@@ -13,6 +15,9 @@ const io = new Server(server, {
 let db = new Array(); // Contain full details from each user(nickname/id).
 let users = new Set(); // Contain all online users name(only nickanme).
 
+app.post("/online", (req, res) => {
+    res.send(JSON.stringify(Array.from(db)))
+})
 
 io.on('connection', (socket) => {
 
@@ -21,6 +26,7 @@ io.on('connection', (socket) => {
         console.log(data)
         socket.to(data.room).emit('receive_message', data.msg);
     });
+
 
     // Register and Update new connected client:' save in "db" and "users" '.
     socket.on('login', (data) => {
@@ -52,6 +58,11 @@ io.on('connection', (socket) => {
         display();
 
     });
+
+    socket.on("join_room", (data) => {
+        socket.join(data);
+        console.log(`User with ID: ${socket.id} joined room: ${data}`);
+      });
 
 
     // Send online users to UI:

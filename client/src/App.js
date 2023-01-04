@@ -1,31 +1,36 @@
 import "./App.css";
 import io from "socket.io-client";
 import { useState, useEffect } from "react";
-const socket = io.connect("http://localhost:3001")
+const socket = io.connect("http://localhost:3001");
+import x from './x-icon.png';
+import plane from './plane.png';
 
 function App() {
 
     const [username, setUsername] = useState("");
+    const [nameSubmitted, setNameSubmitted] = useState(false)
     const [room, setRoom] = useState("");
     const [msg, setMsg] = useState("");
-    const [userList, setUserList] = useState([]);
+    const [onlineUsersList, setOnlineUsersList] = useState([]);
 
-    // Register an username to server db:
+    // Register a username to server db:
     const login = () => {
+        for (let i = 0; i<onlineUsersList.length; i++) {
+            //exclude duplicating usernames
+            if (onlineUsersList[i].nickname == username) {
+                displayErrorMessage('This username is already in use')
+                return
+            } 
+        }
         if (username !== "") {
+            setNameSubmitted(true);
             socket.emit("login", username);
-            socket.emit('msg','request')
+            socket.emit('msg','request');
         } else {
-            console.log('Set your username.')
+            displayErrorMessage('Set your username.')
         }
     };
  
-    // Display Online:
-    socket.on('online',(data)=>{
-      console.log(data)
-    });
-
-    // Send a message:
     function sendMsg() {
         if (room !== "") {
             const message = {
@@ -33,6 +38,7 @@ function App() {
                 room: room
             };
             socket.emit("send_message", message)
+          
         } else {
             console.log("Username or ID is missing")
         }
@@ -44,29 +50,100 @@ function App() {
         socket.on('receive_message', (data) => {
 
             console.log(data)
-
-        })
+       
+   
     }, [socket]);
+
+})
+
+function openDialog(id) {
+    setRoom(id)
+}
+
+function closeDialog() {
+    setRoom("")
+
+}
+
+function displayErrorMessage(message) {
+    document.getElementById("error-message").innerText = message;
+}
+
+// display online users
+    useEffect(() => {
+        socket.on('online', (data) => {
+            let filteredList = JSON.parse(data).filter(name => name.nickname !== username)
+            setOnlineUsersList(filteredList)
+        })
+       
+           
+    }, [username]);
+
+
     
     return ( 
-    <div className = "App" >
-
-        <input type = "text" placeholder = "Your Name" onChange = {(event) => {setUsername(event.target.value);}}/>
-
-        <button onClick = { login }> Set Your Username </button>
-
         <div>
-          <p>Users online: </p>
+        {nameSubmitted ? 
+    <div className = "main">
+ 
+        {room ? 
+        <div>
+       
+            <div className="back">
+            <img className="x" src={x} onClick = { closeDialog }/> 
+            </div>
+            <div id="history">
+                <p>message</p>
+          
+                <p>message</p>
+               
+                <p>message</p>
+             
+                <p>message</p>
+             
+                <p>message</p>
+                <p>message</p>
+    
+               
+            </div>
+          
+            <div id="typing-area">
+        <textarea placeholder = "Message" onChange = {(event) => {setMsg(event.target.value);}}></textarea>
+        <div>
+        <img className="plane" src={plane} onClick = { sendMsg }/> 
+        </div>
         </div>
 
-        <input type = "text" placeholder = "Client/Group name" onChange = {(event) => {setRoom(event.target.value);}}/>
+        </div>
+        :
+        <div id="users-list">
+        <p>You are in game under name <b>{username}</b></p>
+      <p>Users online: </p>
+      {onlineUsersList.map((user, index) => 
+        <div key={index}>
+            <button
+                name={user.id}
+                onClick={(event) => openDialog(user.id)}
+                className="user-button"
+                >
+                {user.nickname}
+            </button>
+        </div>
+        )}
+    </div>
+}
+</div>
+:
+<div className="main">
+    <br/>
+    <input type = "text" placeholder = "Your Name" onChange = {(event) => {setUsername(event.target.value);}}/>
+    <button onClick = { login }> Set Your Username </button>
+    <p id="error-message"></p>
+</div>
+}
+</div>
 
-
-        <input type = "text" placeholder = "Message" onChange = {(event) => {setMsg(event.target.value);}}/>
-
-        <button onClick = { sendMsg } > Send Msg </button>
-
-        </div>)
+       )
     }
 
     export default App
