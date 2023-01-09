@@ -12,6 +12,9 @@ function App() {
     const [room, setRoom] = useState("");
     const [msg, setMsg] = useState("");
     const [onlineUsersList, setOnlineUsersList] = useState([]);
+    const [messages, setMessages] = useState([]);
+    const [token, setToken] = useState("");
+    const [anotherName, setAnotherName] = useState("");
 
     // Register a username to server db:
     const login = () => {
@@ -31,37 +34,56 @@ function App() {
         }
     };
  
-    function sendMsg() {
+   const sendMsg = async() => {
+        console.log(token)
         if (room !== "") {
             const message = {
                 msg: msg,
-                room: room
+                room: room,
+                username: username,
+                anotherName: anotherName,
+                token: token
             };
-            socket.emit("send_message", message)
+            await socket.emit("send_message", message)
+            let row = {};
+            row[username] = msg;
+           
+            setMessages((messages) => [...messages, row]);
+            setMsg("");
           
         } else {
             console.log("Username or ID is missing")
         }
+        
 
     };
 
     // Display msg:
     useEffect(() => {
         socket.on('receive_message', (data) => {
-
-            console.log(data)
-       
-   
+            console.log(data.token)
+            let row = {};
+            row[data.username] = data.msg;
+            setMessages((messages) => [...messages, row]);
+           
     }, [socket]);
 
-})
 
-function openDialog(id) {
-    setRoom(id)
+
+}, [])
+
+function openDialog(id, name) {
+    let string = [name, username].sort().join("-");
+    setAnotherName(name);
+    setToken(string);
+    setRoom(id);
 }
 
+
+
 function closeDialog() {
-    setRoom("")
+    setRoom("");
+    setMessages([]);
 
 }
 
@@ -71,15 +93,28 @@ function displayErrorMessage(message) {
 
 // display online users
     useEffect(() => {
-        socket.on('online', (data) => {
-            let filteredList = JSON.parse(data).filter(name => name.nickname !== username)
-            setOnlineUsersList(filteredList)
-        })
-       
-           
+        getOnlineUsersList();   
     }, [username]);
 
+ setInterval(checkOnline(anotherName), 500)
 
+ function checkOnline(anotherName) {
+    socket.on('online', (data) => {
+        console.log(data)
+    let filteredList = JSON.parse(data).filter(name => name.nickname === anotherName)
+    if (typeof JSON.parse(data)[anotherName] === "undefined") {
+        // console.log(filteredList)
+       document.getElementById("history").innerHTML = '<h1>User has left the conversation</h1>'
+    }
+    })
+ }
+
+function getOnlineUsersList() {
+    socket.on('online', (data) => {
+        let filteredList = JSON.parse(data).filter(name => name.nickname !== username)
+        setOnlineUsersList(filteredList)
+    })
+}
     
     return ( 
         <div>
@@ -93,22 +128,15 @@ function displayErrorMessage(message) {
             <img className="x" src={x} onClick = { closeDialog }/> 
             </div>
             <div id="history">
-                <p>message</p>
-          
-                <p>message</p>
-               
-                <p>message</p>
-             
-                <p>message</p>
-             
-                <p>message</p>
-                <p>message</p>
+                {messages.map((row, index) => 
+                     <p key={index}>{`${Object.keys(row)}: ${Object.values(row)}`}</p>
+                )}
     
                
             </div>
           
             <div id="typing-area">
-        <textarea placeholder = "Message" onChange = {(event) => {setMsg(event.target.value);}}></textarea>
+        <textarea value = {msg} onChange = {(event) => {setMsg(event.target.value);}}></textarea>
         <div>
         <img className="plane" src={plane} onClick = { sendMsg }/> 
         </div>
@@ -122,8 +150,7 @@ function displayErrorMessage(message) {
       {onlineUsersList.map((user, index) => 
         <div key={index}>
             <button
-                name={user.id}
-                onClick={(event) => openDialog(user.id)}
+                onClick={(event) => openDialog(user.id, user.nickname)}
                 className="user-button"
                 >
                 {user.nickname}
