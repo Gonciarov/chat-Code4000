@@ -15,6 +15,7 @@ function App() {
     const [messages, setMessages] = useState([]);
     const [token, setToken] = useState("");
     const [anotherName, setAnotherName] = useState("");
+    const [notifs, setNotifs] = useState({});
 
     // Register a username to server db:
     const login = () => {
@@ -35,7 +36,6 @@ function App() {
     };
  
    const sendMsg = async() => {
-        console.log(token)
         if (room !== "") {
             const message = {
                 msg: msg,
@@ -44,12 +44,10 @@ function App() {
                 anotherName: anotherName,
                 token: token
             };
-            await socket.emit("send_message", message)
-            let row = {};
-            row[username] = msg;
-           
-            setMessages((messages) => [...messages, row]);
+            await socket.emit("send_message", message);
+            setMessages((messages) => [...messages, message]);
             setMsg("");
+            console.log(messages);
           
         } else {
             console.log("Username or ID is missing")
@@ -61,10 +59,9 @@ function App() {
     // Display msg:
     useEffect(() => {
         socket.on('receive_message', (data) => {
-            console.log(data.token)
-            let row = {};
-            row[data.username] = data.msg;
-            setMessages((messages) => [...messages, row]);
+            console.log(data)
+            addNotif(data.username);
+            setMessages(messages => [...messages, data]);
            
     }, [socket]);
 
@@ -83,8 +80,20 @@ function openDialog(id, name) {
 
 function closeDialog() {
     setRoom("");
-    setMessages([]);
+    removeNotif(anotherName)
+}
 
+function addNotif(nickname) {
+    let counter = notifs[nickname] || 0;
+    let x = notifs;
+    x[nickname] = counter + 1;
+    setNotifs(x);
+}
+
+function removeNotif(name) {
+    let x = notifs;
+    delete x[name];
+    setNotifs(x);
 }
 
 function displayErrorMessage(message) {
@@ -95,19 +104,6 @@ function displayErrorMessage(message) {
     useEffect(() => {
         getOnlineUsersList();   
     }, [username]);
-
- setInterval(checkOnline(anotherName), 500)
-
- function checkOnline(anotherName) {
-    socket.on('online', (data) => {
-        console.log(data)
-    let filteredList = JSON.parse(data).filter(name => name.nickname === anotherName)
-    if (typeof JSON.parse(data)[anotherName] === "undefined") {
-        // console.log(filteredList)
-       document.getElementById("history").innerHTML = '<h1>User has left the conversation</h1>'
-    }
-    })
- }
 
 function getOnlineUsersList() {
     socket.on('online', (data) => {
@@ -128,8 +124,10 @@ function getOnlineUsersList() {
             <img className="x" src={x} onClick = { closeDialog }/> 
             </div>
             <div id="history">
-                {messages.map((row, index) => 
-                     <p key={index}>{`${Object.keys(row)}: ${Object.values(row)}`}</p>
+                {messages.map((message, index) => 
+                    message.token === token ?
+                     <p key={index}>{`${message.username}: ${message.msg}`}</p>
+                     : null
                 )}
     
                
@@ -154,7 +152,7 @@ function getOnlineUsersList() {
                 className="user-button"
                 >
                 {user.nickname}
-            </button>
+            </button>{notifs[user.nickname]}
         </div>
         )}
     </div>
