@@ -1,36 +1,3 @@
-.main {
-  text-align: center;
-  margin-top: 5Vh;
-  margin-left: 15%;
-  margin-right: 15%;
-  min-height: 480px;
-  height: 90Vh;
-  border: solid 1px grey;
-  padding-bottom: 30px;
-}
-
-@media screen and (max-width: 480px) {
-  .main {
-    margin-left: 10%;
-    margin-right: 10%;
-  }
-
-};
-
-@media screen and (max-width: 300px) {
-  .main {
-    margin-left: 5%;
-    margin-right: 5%;
-  }
-
-  textarea {
-    width: 80%;
-  }
-
-};
-
-
-
 
 .user-button {
   margin: 10px;
@@ -51,22 +18,6 @@
   height: 3%;
 }
 
-#history {
-  height: 60Vh;
-}
-
-#typing-area {
-  text-align: center;
-  height: 20%;
-}
-
-textarea {
-  margin-top: 5%;
-  max-width: 550px;
-  height: 40px;
-  width: 90%;
-}
-
 .x {
   max-height: 15px;
   cursor: pointer;
@@ -76,5 +27,236 @@ textarea {
   max-height: 40px;
   cursor: pointer;
   margin: 2px;
+}
+
+.App {
+  width: 100vw;
+  height: 100vh;
+  background: #fff;
+  color: #212121;
+  font-family: "Open Sans", sans-serif;
+  display: grid;
+  place-items: center;
+}
+body {
+  margin: 0%;
+  padding: 0%;
+}
+
+.joinChatContainer {
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+}
+
+.joinChatContainer h3 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+.joinChatContainer input {
+  width: 210px;
+  height: 40px;
+  margin: 7px;
+  border: 2px solid #43a047;
+  border-radius: 5px;
+  padding: 5px;
+  font-size: 16px;
+}
+
+.joinChatContainer button, .user-button {
+  width: 225px;
+  height: 50px;
+  margin: 7px;
+  border: none;
+  border-radius: 5px;
+  padding: 5px;
+  font-size: 16px;
+  background: #43a047;
+  color: #fff;
+  cursor: pointer;
+}
+
+@keyframes glowing {
+  0% {
+    background: #43a047;
+    box-shadow: 0 0 5px #2ba805;
+  }
+  50% {
+    background-color: #49e819;
+    box-shadow: 0 0 20px #49e819;
+  }
+  100% {
+    background-color: #2ba805;
+    box-shadow: 0 0 5px #2ba805;
+  }
+}
+.user-button-unread {
+  width: 225px;
+  height: 50px;
+  margin: 7px;
+  border: none;
+  border-radius: 5px;
+  padding: 5px;
+  font-size: 16px;
+  background: #43a047;
+  color: #fff;
+  cursor: pointer;
+  animation: glowing 1300ms infinite;
+}
+
+.joinChatContainer button:hover {
+  background: #2e7d32;
+}
+
+.main {
+  width: 300px;
+  height: 420px;
+}
+
+.main p {
+  margin: 0;
+}
+.main .chat-header {
+  height: 45px;
+  border-radius: 6px;
+  background: #263238;
+  position: relative;
+  cursor: pointer;
+}
+.main .chat-header p {
+  display: block;
+  padding: 0 1em 0 2em;
+  color: #fff;
+  font-weight: 700;
+  line-height: 45px;
+}
+
+.main .chat-body {
+  height: calc(450px - (45px + 70px));
+  border: 1px solid #263238;
+  background: #fff;
+
+  position: relative;
+}
+.main .chat-body .message-container {
+  width: 100%;
+  height: 100%;
+  overflow-y: scroll;
+  overflow-x: hidden;
+}
+
+.main .chat-body .message-container::-webkit-scrollbar {
+  display: none;
+}
+.main .chat-body .message {
+  height: auto;
+  padding: 10px;
+  display: flex;
+}
+
+.main .chat-body .message .message-content {
+  width: auto;
+  height: auto;
+  min-height: 20px;
+  max-width: 120px;
+  background-color: #43a047;
+  border-radius: 5px;
+  color: white;
+  display: flex;
+  align-items: center;
+  margin-right: 5px;
+  margin-left: 5px;
+  padding-right: 5px;
+  padding-left: 5px;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.message-content {
+  padding-top: 1px;
+  padding-bottom: 3px;
+}
+
+#you {
+  justify-content: flex-start;
+}
+
+#you .message-content {
+  justify-content: flex-start;
+}
+
+#you .message-meta {
+  justify-content: flex-start;
+  margin-left: 5px;
+}
+
+#other {
+  justify-content: flex-end;
+}
+
+#other .message-content {
+  justify-content: flex-end;
+  background-color: cornflowerblue;
+}
+
+#other .message-meta {
+  justify-content: flex-end;
+  margin-right: 5px;
+}
+
+.message-meta #author {
+  margin-left: 10px;
+  font-weight: bold;
+}
+
+.message-meta {
+  font-size: 8px;
+  display: flex;
+}
+
+.main .chat-body .message {
+  display: flex;
+  font-size: 14px;
+}
+
+.main .typing-area {
+  height: 40px;
+  border: 1px solid #263238;
+  border-top: none;
+  display: flex;
+}
+
+
+
+.main .typing-area input {
+  height: 100%;
+  flex: 85%;
+  border: 0;
+  padding: 0 0.7em;
+  font-size: 1em;
+  border-right: 1px dotted #607d8b;
+
+  outline: none;
+  font-family: "Open Sans", sans-serif;
+}
+
+.main .typing-area button {
+  border: 0;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  flex: 15%;
+  height: 100%;
+  background: transparent;
+  outline: none;
+  font-size: 25px;
+  color: lightgray;
+}
+
+.main .typing-area button:hover {
+  color: #43a047;
+}
+.hide {
+  opacity: 0 !important;
 }
 

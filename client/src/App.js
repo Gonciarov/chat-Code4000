@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 const socket = io.connect("http://localhost:3001");
 import x from './x-icon.png';
 import plane from './plane.png';
+import ScrollToBottom from "react-scroll-to-bottom";
 
 function App() {
 
@@ -41,8 +42,8 @@ function App() {
                 msg: msg,
                 room: room,
                 username: username,
-                anotherName: anotherName,
-                token: token
+                token: token,
+                time: getTime()
             };
             await socket.emit("send_message", message);
             setMessages((messages) => [...messages, message]);
@@ -68,6 +69,13 @@ function App() {
 
 
 }, [])
+
+function getTime() {
+    let hours = new Date(Date.now()).getHours();
+    let minutes = new Date(Date.now()).getMinutes();              
+    minutes < 10 ? minutes = "0" + minutes : null             
+    return hours + ":" + minutes;
+}
 
 function openDialog(id, name) {
     let string = [name, username].sort().join("-");
@@ -113,7 +121,7 @@ function getOnlineUsersList() {
 }
     
     return ( 
-        <div>
+        <div className="App">
         {nameSubmitted ? 
     <div className = "main">
  
@@ -123,21 +131,43 @@ function getOnlineUsersList() {
             <div className="back">
             <img className="x" src={x} onClick = { closeDialog }/> 
             </div>
-            <div id="history">
-                {messages.map((message, index) => 
-                    message.token === token ?
-                     <p key={index}>{`${message.username}: ${message.msg}`}</p>
-                     : null
+            <div className="chat-body">
+            <ScrollToBottom className="message-container">
+                {messages.map((message, index) => {
+                    return (
+                        <div 
+                            key={index}
+                            className="message"
+                            id = {username === message.username ? "you" : "other"}
+                        >
+                    {message.token === token ?
+                    <div>
+                    <div className="message-content">
+                        <p>{message.msg}</p>
+                     </div>
+                     <div className="message-meta">
+                        <p id="time">{message.time}</p>
+                   </div>
+                   </div>
+                     : null}
+                     </div>
+                    )}
                 )}
     
                
+            </ScrollToBottom>
             </div>
           
-            <div id="typing-area">
-        <textarea value = {msg} onChange = {(event) => {setMsg(event.target.value);}}></textarea>
-        <div>
+            <div className="typing-area">
+        <input 
+            type="text" 
+            value = {msg} 
+            onChange = {(event) => {setMsg(event.target.value);}}
+            onKeyPress={(event) => {event.key === "Enter" && sendMsg();}}
+        ></input>
+        
         <img className="plane" src={plane} onClick = { sendMsg }/> 
-        </div>
+        
         </div>
 
         </div>
@@ -149,20 +179,28 @@ function getOnlineUsersList() {
         <div key={index}>
             <button
                 onClick={(event) => openDialog(user.id, user.nickname)}
-                className="user-button"
+                className={notifs[user.nickname] > 0 ? "user-button-unread" : "user-button"}
                 >
-                {user.nickname}
-            </button>{notifs[user.nickname]}
+                {user.nickname} {notifs[user.nickname] > 0 ? `(${notifs[user.nickname]})` : null}
+            </button>
         </div>
         )}
     </div>
 }
 </div>
 :
-<div className="main">
+<div className="joinChatContainer">
     <br/>
-    <input type = "text" placeholder = "Your Name" onChange = {(event) => {setUsername(event.target.value);}}/>
-    <button onClick = { login }> Set Your Username </button>
+    <input 
+        type = "text" 
+        maxlength="16" 
+        placeholder = "Your Name" 
+        onKeyPress={(event) => {event.key === "Enter" && login();}}
+        onChange = {(event) => {setUsername(event.target.value);}}
+    />
+    <button 
+    onClick = { login }
+    > Set Your Username </button>
     <p id="error-message"></p>
 </div>
 }
